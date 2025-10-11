@@ -1,0 +1,104 @@
+# Filebeat 配置
+filebeat.inputs:
+# Type - filestream，适用于持续增长的日志文件
+- type: log
+  enabled: true
+  paths:
+    - /logs/blm-saas/*.log
+  fields:
+    app: "blm-saas"       # 应用名称
+    env: "test"           # 环境（来自您的容器名）
+    source: "docker-file" # 日志来源
+  fields_under_root: true # 将上述字段提升到日志事件的顶级，方便查询
+  multiline:
+    pattern: '^\d{4}-\d{2}-\d{2}' # 匹配以日期开头的新行（新日志条目）
+    negate: true    #  true表示“不匹配上述pattern的行”
+    match: after    # 将不匹配的行合并到上一行之后
+    max_lines: 500   # 最多合并行数，防止巨大的堆栈跟踪导致内存问题
+    timeout: 5s     # 超时后即使没有新 pattern 也发送日志
+- type: container
+  paths:
+    - '/var/lib/docker/containers/359d0d4263583c9f7fdbaeeefdb958bb188127e7c3919d873abe0a43ad6fd2a4/*.log'
+  json.keys_under_root: true
+  json.add_error_key: true
+  json.message_key: 'log'
+  processors:
+    - add_docker_metadata: ~
+    - add_fields:
+        target: ''
+        fields:
+          app: 'nacos'
+          log_type: 'application'
+
+# 自动发现配置（备用）
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      templates:
+        - condition:
+            contains:
+              docker.container.id: "359d0d4263583c9f7fdbaeeefdb958bb188127e7c3919d873abe0a43ad6fd2a4"
+          config:
+            - type: container
+              paths:
+                - "/var/lib/docker/containers/${data.docker.container.id}/*.log"
+              json.keys_under_root: true
+              json.add_error_key: true
+              json.message_key: 'log'
+
+# 处理器配置
+processors:
+  - add_host_metadata:
+      netinfo.enabled: true
+  - decode_json_fields:
+      fields: ["message"]
+      target: ""
+      overwrite_keys: true
+
+  - rename:
+      when: # 添加条件
+        equals:
+          app: "nacos"
+      fields:
+        - from: "log"
+          to: "message"
+        - from: "stream"
+          to: "log_stream"
+        - from: "time"
+          to: "@timestamp"
+  - timestamp:
+      when: # 添加条件
+        equals:
+          app: "nacos"
+      field: "@timestamp"
+      layouts:
+        - "2006-01-02T15:04:05.999999999Z"
+      test:
+        - "2025-10-10T10:07:30.185557665Z"
+
+  - drop_fields:
+      fields: ["ecs", "agent", "input", "host"]
+
+# 输出配置
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
+  indices:
+    - index: "blm-saas-logs-%{+yyyy.MM.dd}" # 动态使用 app 字段的值
+      when:
+        equals:
+          app: "blm-saas"
+
+    - index: "nacos-logs-%{+yyyy.MM.dd}" #  nacos 日志的索引
+      when:
+        equals:
+          app: "nacos"
+
+# 日志设置
+logging:
+  level: debug
+  to_files: true
+  files:
+    path: /usr/share/filebeat/logs
+    name: filebeat.log
+    keepfiles: 7
+    permissions: 0644

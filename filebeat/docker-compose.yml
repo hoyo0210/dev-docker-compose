@@ -1,0 +1,28 @@
+services:
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.9.3  # 与您的ELK版本保持一致
+    container_name: filebeat-nacos
+    restart: unless-stopped
+    user: root  # 需要root权限读取宿主机日志文件
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro  # 访问Docker容器日志
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # 获取Docker元数据
+      - filebeat-data:/usr/share/filebeat/data  # 持久化注册表文件
+      - /logs:/logs
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200  # 根据实际情况调整
+      - LOGSTASH_HOST=logstash:5044
+    networks:
+      - nacos_default  # 连接到Nacos所在的网络
+      - elk_default    # 连接到ELK所在的网络
+
+volumes:
+  filebeat-data:
+    driver: local
+
+networks:
+  nacos_default:
+    external: true  # 使用现有的Nacos网络
+  elk_default:
+    external: true  # 使用现有的ELK网络

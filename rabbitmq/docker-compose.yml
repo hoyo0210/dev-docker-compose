@@ -1,0 +1,25 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: rabbitmq
+    hostname: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"  # AMQP 协议端口
+      - "15672:15672"  # 管理界面端口
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: yourpassword
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_logs:/var/log/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  rabbitmq_data:
+  rabbitmq_logs:
