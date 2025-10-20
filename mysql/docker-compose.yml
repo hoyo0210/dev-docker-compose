@@ -3,9 +3,9 @@ services:
     image: mysql:8.0
     container_name: mysql
     environment:
-      MYSQL_ROOT_PASSWORD: 8j2tfUM3q0TkCGbrx0N9
+      MYSQL_ROOT_PASSWORD: <MYSQL_ROOT_PASSWORD>
     ports:
-      - "3306:3306" 
+      - "3306:3306"
     volumes:
       - ./data:/var/lib/mysql
       - ./conf:/etc/mysql/conf.d
@@ -17,7 +17,7 @@ services:
     environment:
       PMA_HOST: mysql
       PMA_USER: root
-      PMA_PASSWORD: 8j2tfUM3q0TkCGbrx0N9
+      PMA_PASSWORD: <MYSQL_ROOT_PASSWORD>
     ports:
       - "9999:80"
     depends_on:

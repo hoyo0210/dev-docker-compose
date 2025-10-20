@@ -94,20 +94,20 @@ dev-docker-compose/
 - **端口**: `3306`
 - **管理界面**: `http://localhost:9999` (phpMyAdmin)
 - **用户名**: `root`
-- **密码**: `8j2tfUM3q0TkCGbrx0N9`
+- **密码**: `<MYSQL_ROOT_PASSWORD>`
 
 ### Nacos (`nacos/`)
 - **控制台**: `http://localhost:8848`
 - **gRPC端口**: `9848`
-- **用户名**: `nacos`
-- **密码**: `nacos`
+- **用户名**: `<NACOS_USERNAME>`
+- **密码**: `<NACOS_PASSWORD>`
 - **环境变量**: 需要配置 `.env` 文件
 
 ### RabbitMQ (`rabbitmq/`)
 - **AMQP端口**: `5672`
 - **管理界面**: `http://localhost:15672`
-- **用户名**: `admin`
-- **密码**: `yourpassword`
+- **用户名**: `<RABBITMQ_USERNAME>`
+- **密码**: `<RABBITMQ_PASSWORD>`
 
 ### Redis (`redis/`)
 - **端口**: `6379`
@@ -195,7 +195,7 @@ MYSQL_SERVICE_HOST=mysql
 MYSQL_SERVICE_PORT=3306
 MYSQL_SERVICE_DB_NAME=nacos
 MYSQL_SERVICE_USER=root
-MYSQL_SERVICE_PASSWORD=8j2tfUM3q0TkCGbrx0N9
+MYSQL_SERVICE_PASSWORD=<MYSQL_SERVICE_PASSWORD>
 ```
 
 ### 修改密码
